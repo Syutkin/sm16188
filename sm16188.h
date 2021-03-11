@@ -25,6 +25,9 @@ Modified by: Andrey Syutkin  // syutkin@gmail.com
 #include "Arduino.h"
 #ifdef __AVR__
 #include <DigitalIO.h>
+
+#elif defined(ESP32)
+#include "driver/gpio.h"
 #endif
 
 //display screen (and subscreen) sizing
@@ -58,7 +61,11 @@ Modified by: Andrey Syutkin  // syutkin@gmail.com
 typedef uint8_t (*FontCallback)(const uint8_t *);
 
 //The main class of SM16188 library functions
+#ifdef __AVR__
 template <uint8_t d1, uint8_t d2>
+#elif defined(ESP32)
+template <gpio_num_t d1, gpio_num_t d2>
+#endif
 class SM16188
 {
 public:
@@ -75,7 +82,6 @@ public:
         pinMode(d2, OUTPUT);
         digitalWrite(d1, LOW);
         digitalWrite(d2, LOW);
-
         // fastPinConfig(d1, OUTPUT, LOW);
         // fastPinConfig(d2, OUTPUT, LOW);
 
@@ -567,6 +573,7 @@ public:
     // Insert the calls to this function into the main loop for the highest call rate, or from a timer interrupt
     void updateScreen()
     {
+        noInterrupts();
         for (int i = SM16188_PIXELS_ACROSS * _panelsWide * 2 - 1; i >= 0; i -= 2)
         {
             transfer(bSM16188ScreenRAM[i], d2);
@@ -577,13 +584,13 @@ public:
             transfer(bSM16188ScreenRAM[i], d1);
         }
         transferBrightness(_brightness, d1);
+        interrupts();
     }
 
 private:
 #ifdef __AVR__
     inline __attribute__((always_inline)) void transfer(byte val, uint8_t pin)
     {
-        noInterrupts();
         switch (pin)
         {
         case d1:
@@ -645,12 +652,10 @@ private:
             }
             break;
         }
-        interrupts();
     }
 
     inline __attribute__((always_inline)) void transferBrightness(byte val, uint8_t pin)
     {
-        noInterrupts();
         switch (pin)
         {
         case d1:
@@ -712,75 +717,67 @@ private:
             }
             break;
         }
-        interrupts();
     }
 
 #elif defined(ESP32)
-    inline __attribute__((always_inline)) void transfer(byte val, uint8_t pin)
+    inline __attribute__((always_inline)) void transfer(byte val, gpio_num_t pin)
     {
-        noInterrupts();
         for (int i = 7; i >= 0; i--)
         {
             if (bitRead(val, i))
             {
-                delay = micros();
-                digitalWrite(pin, HIGH);
-                while (micros() - delay < 3)
-                {
-                }
-                digitalWrite(pin, LOW);
-                while (micros() - delay < 4)
-                {
-                }
+                writeData(pin, HIGH);
             }
             else
             {
-                delay = micros();
-                digitalWrite(pin, HIGH);
-                // while (micros() - delay < 1)
-                // {
-                // }
-                digitalWrite(pin, LOW);
-                while (micros() - delay < 4)
-                {
-                }
+                writeData(pin, LOW);
             }
         }
-        interrupts();
     }
 
-    inline __attribute__((always_inline)) void transferBrightness(byte val, uint8_t pin)
+    inline __attribute__((always_inline)) void transferBrightness(byte val, gpio_num_t pin)
     {
-        noInterrupts();
         for (int i = 3; i >= 0; i--)
         {
             if (bitRead(val, i))
             {
-                delay = micros();
-                digitalWrite(pin, HIGH);
-                while (micros() - delay < 3)
-                {
-                }
-                digitalWrite(pin, LOW);
-                while (micros() - delay < 4)
-                {
-                }
+                writeData(pin, HIGH);
             }
             else
             {
-                delay = micros();
-                digitalWrite(pin, HIGH);
-                // while (micros() - delay < 1)
-                // {
-                // }
-                digitalWrite(pin, LOW);
-                while (micros() - delay < 4)
-                {
-                }
+                writeData(pin, LOW);
             }
         }
-        interrupts();
     }
+
+    inline __attribute__((always_inline)) void writeData(gpio_num_t pin, bool level)
+    {
+        if (level)
+        {
+            delay = micros();
+            gpio_set_level(pin, HIGH);
+            while (micros() - delay < 3)
+            {
+            }
+            gpio_set_level(pin, LOW);
+            while (micros() - delay < 4)
+            {
+            }
+        }
+        else
+        {
+            delay = micros();
+            gpio_set_level(pin, HIGH);
+            // while (micros() - delay < 1)
+            // {
+            // }
+            gpio_set_level(pin, LOW);
+            while (micros() - delay < 4)
+            {
+            }
+        }
+    }
+
 #endif
 
     void
