@@ -112,7 +112,6 @@ public:
     //Set or clear a pixel at the x and y location (0,0 is the top left corner)
     void writePixel(unsigned int bX, unsigned int bY, byte bGraphicsMode, byte bPixel)
     {
-        noInterrupts();
         unsigned int uiSM16188RAMPointer;
 
         if (bX >= (SM16188_PIXELS_ACROSS * _panelsWide) || bY >= (SM16188_PIXELS_DOWN * _panelsHigh))
@@ -159,7 +158,6 @@ public:
                 bitClear(bSM16188ScreenRAM[uiSM16188RAMPointer], bY); // zero bit is pixel off
             break;
         }
-        interrupts();
     }
 
     //Draw a string
@@ -305,7 +303,7 @@ public:
         return width;
     }
 
-    //Draw a scrolling string
+    //Draw a scrolling string (not implemented!)
     void drawMarquee(const char *bChars, byte length, int left, int top)
     {
         marqueeWidth = 0;
@@ -421,7 +419,7 @@ public:
     //     return ret;
     // }
 
-    //Clear the screen in DMD RAM
+    //Clear the screen in SM16188 RAM
     void clearScreen(byte bNormal)
     {
         if (bNormal) // clear all pixels
@@ -538,8 +536,8 @@ public:
     {
         unsigned int ui;
 
-        int numPixels = panelsTotal * SM16188_PIXELS_ACROSS * SM16188_PIXELS_DOWN;
-        int pixelsWide = SM16188_PIXELS_ACROSS * _panelsWide;
+        unsigned int numPixels = panelsTotal * SM16188_PIXELS_ACROSS * SM16188_PIXELS_DOWN;
+        unsigned int pixelsWide = SM16188_PIXELS_ACROSS * _panelsWide;
         for (ui = 0; ui < numPixels; ui++)
         {
             switch (bPattern)
@@ -600,13 +598,13 @@ private:
                 {
                     delay = micros();
                     fastDigitalWrite(d1, HIGH);
-                    while (micros() - delay < 3)
+                    while (micros() - delay < 1)
                     {
                     }
                     fastDigitalWrite(d1, LOW);
-                    while (micros() - delay < 4)
-                    {
-                    }
+                    // while (micros() - delay < 1)
+                    // {
+                    // }
                 }
                 else
                 {
@@ -616,7 +614,7 @@ private:
                     // {
                     // }
                     fastDigitalWrite(d1, LOW);
-                    while (micros() - delay < 4)
+                    while (micros() - delay < 1)
                     {
                     }
                 }
@@ -629,13 +627,13 @@ private:
                 {
                     delay = micros();
                     fastDigitalWrite(d2, HIGH);
-                    while (micros() - delay < 3)
+                    while (micros() - delay < 1)
                     {
                     }
                     fastDigitalWrite(d2, LOW);
-                    while (micros() - delay < 4)
-                    {
-                    }
+                    // while (micros() - delay < 1)
+                    // {
+                    // }
                 }
                 else
                 {
@@ -645,7 +643,7 @@ private:
                     // {
                     // }
                     fastDigitalWrite(d2, LOW);
-                    while (micros() - delay < 4)
+                    while (micros() - delay < 1)
                     {
                     }
                 }
@@ -665,13 +663,13 @@ private:
                 {
                     delay = micros();
                     fastDigitalWrite(d1, HIGH);
-                    while (micros() - delay < 3)
+                    while (micros() - delay < 1)
                     {
                     }
                     fastDigitalWrite(d1, LOW);
-                    while (micros() - delay < 4)
-                    {
-                    }
+                    // while (micros() - delay < 1)
+                    // {
+                    // }
                 }
                 else
                 {
@@ -681,7 +679,7 @@ private:
                     // {
                     // }
                     fastDigitalWrite(d1, LOW);
-                    while (micros() - delay < 4)
+                    while (micros() - delay < 1)
                     {
                     }
                 }
@@ -694,11 +692,11 @@ private:
                 {
                     delay = micros();
                     fastDigitalWrite(d2, HIGH);
-                    while (micros() - delay < 3)
-                    {
-                    }
+                    // while (micros() - delay < 1)
+                    // {
+                    // }
                     fastDigitalWrite(d2, LOW);
-                    while (micros() - delay < 4)
+                    while (micros() - delay < 1)
                     {
                     }
                 }
@@ -710,7 +708,7 @@ private:
                     // {
                     // }
                     fastDigitalWrite(d2, LOW);
-                    while (micros() - delay < 4)
+                    while (micros() - delay < 1)
                     {
                     }
                 }
@@ -756,13 +754,13 @@ private:
         {
             delay = micros();
             gpio_set_level(pin, HIGH);
-            while (micros() - delay < 3)
+            while (micros() - delay < 1)
             {
             }
             gpio_set_level(pin, LOW);
-            while (micros() - delay < 4)
-            {
-            }
+            // while (micros() - delay < 4)
+            // {
+            // }
         }
         else
         {
@@ -772,7 +770,7 @@ private:
             // {
             // }
             gpio_set_level(pin, LOW);
-            while (micros() - delay < 4)
+            while (micros() - delay < 1)
             {
             }
         }
